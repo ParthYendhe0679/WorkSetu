@@ -10,7 +10,24 @@ dotenv.config();
 const app = express();
 
 // Set up middleware
-app.use(cors());
+const allowedOrigins = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL,           // e.g. https://worksetu-frontend.onrender.com
+].filter(Boolean);
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // Allow requests with no origin (e.g. mobile apps, Postman, server-to-server)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
