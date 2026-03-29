@@ -104,32 +104,32 @@ const MyWork = () => {
                         <div className="space-y-3">
                             <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Active Projects</h3>
                             {activeProjects.map(p => (
-                                <motion.div key={p._id} variants={item} className="glass-card p-6 border-l-4 border-l-primary">
+                                <motion.div key={p?._id || Math.random()} variants={item} className="glass-card p-6 border-l-4 border-l-primary">
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
-                                            <h4 className="font-bold text-lg">{p.title}</h4>
-                                            <p className="text-xs text-muted-foreground font-medium mt-0.5">{Array.isArray(p.requiredSkills) ? p.requiredSkills.join(", ") : p.requiredSkills}</p>
+                                            <h4 className="font-bold text-lg">{p?.title || "Untitled Project"}</h4>
+                                            <p className="text-xs text-muted-foreground font-medium mt-0.5">{Array.isArray(p?.requiredSkills) ? p.requiredSkills.join(", ") : (p?.requiredSkills || "No skills listed")}</p>
                                         </div>
                                         <Badge className="bg-primary/10 text-primary border-primary/20 border uppercase text-[9px] font-black">
-                                            {(p.status || "open").replace("-", " ")}
+                                            {(p?.status || "open").replace("-", " ")}
                                         </Badge>
                                     </div>
                                     <div className="flex gap-4 text-sm font-medium border-t border-border pt-3">
-                                        <div className="flex items-center gap-1.5 text-warning"><Clock size={14} /> {p.duration}</div>
-                                        <div className="flex items-center gap-1.5 text-success font-bold"><Wallet size={14} /> ₹{p.wagePerDay}/day</div>
+                                        <div className="flex items-center gap-1.5 text-warning"><Clock size={14} /> {p?.duration || "N/A"}</div>
+                                        <div className="flex items-center gap-1.5 text-success font-bold"><Wallet size={14} /> ₹{p?.wagePerDay || 0}/day</div>
                                     </div>
                                     {/* Summary from history */}
                                     {(() => {
-                                        const summary = (projectHistory || []).find((h: any) => h.project?._id === p._id || h.project === p._id);
+                                        const summary = (projectHistory || []).find((h: any) => h?.project?._id === p?._id || h?.project === p?._id);
                                         return summary ? (
                                             <div className="flex gap-4 mt-3 pt-3 border-t border-border text-sm">
-                                                <span className="text-muted-foreground">{summary.daysWorked} day{summary.daysWorked !== 1 ? "s" : ""} worked</span>
-                                                <span className="font-bold text-success">₹{(summary.totalEarned || 0).toLocaleString()} earned</span>
+                                                <span className="text-muted-foreground">{summary?.daysWorked || 0} day{summary?.daysWorked !== 1 ? "s" : ""} worked</span>
+                                                <span className="font-bold text-success">₹{(summary?.totalEarned || 0).toLocaleString()} earned</span>
                                             </div>
                                         ) : null;
                                     })()}
                                     <Button
-                                        onClick={() => navigate(`/dashboard/worker/projects/${p._id}`)}
+                                        onClick={() => navigate(`/dashboard/worker/projects/${p?._id}`)}
                                         className="w-full mt-4 rounded-xl font-bold gap-2 gradient-primary"
                                         size="sm"
                                     >
@@ -141,22 +141,22 @@ const MyWork = () => {
                     )}
 
                     {/* Project Work History */}
-                    {projectHistory.length > 0 && (
+                    {(projectHistory || []).length > 0 && (
                         <div className="space-y-3 mt-6">
                             <h3 className="font-black text-sm uppercase tracking-widest text-muted-foreground">Project Earnings Summary</h3>
-                            {projectHistory.map((summary: any) => (
-                                <div key={summary.project?._id} className="glass-card p-5 flex items-center justify-between">
+                            {(projectHistory || []).map((summary: any) => (
+                                <div key={summary?.project?._id || Math.random()} className="glass-card p-5 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
                                             <Building2 size={18} />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-sm">{summary.project?.title}</p>
-                                            <p className="text-xs text-muted-foreground">{summary.daysWorked} day{summary.daysWorked !== 1 ? "s" : ""} worked</p>
+                                            <p className="font-bold text-sm">{summary?.project?.title || "Untitled Project"}</p>
+                                            <p className="text-xs text-muted-foreground">{summary?.daysWorked || 0} day{summary?.daysWorked !== 1 ? "s" : ""} worked</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xl font-black text-success">₹{summary.totalEarned.toLocaleString()}</p>
+                                        <p className="text-xl font-black text-success">₹{(summary?.totalEarned || 0).toLocaleString()}</p>
                                         <p className="text-[10px] text-muted-foreground uppercase font-bold">Total Earned</p>
                                     </div>
                                 </div>
@@ -164,7 +164,7 @@ const MyWork = () => {
                         </div>
                     )}
 
-                    {activeProjects.length === 0 && projectHistory.length === 0 && (
+                    {activeProjects.length === 0 && (projectHistory || []).length === 0 && (
                         <div className="glass-card p-14 text-center border-dashed">
                             <Building2 size={48} className="mx-auto mb-4 opacity-20" />
                             <p className="text-muted-foreground font-medium">No projects assigned yet.</p>
@@ -179,19 +179,19 @@ const MyWork = () => {
                 {/* ── ACTIVE JOBS TAB ── */}
                 <TabsContent value="jobs" className="space-y-4">
                     {activeJobs.length > 0 ? activeJobs.map((j) => (
-                        <div key={j._id} className="glass-card p-6 border-l-4 border-l-warning">
+                        <div key={j?._id || Math.random()} className="glass-card p-6 border-l-4 border-l-warning">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h4 className="font-bold text-lg">{j.title}</h4>
-                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">{j.location}</p>
+                                    <h4 className="font-bold text-lg">{j?.title || "Untitled Job"}</h4>
+                                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">{typeof j?.location === 'object' ? (j?.location?.address || 'Unknown') : (j?.location || 'Unknown')}</p>
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
                                     <Badge className={`border-none uppercase text-[10px] font-black ${
-                                        j.status === "booked" ? "bg-warning/20 text-warning" : "bg-blue-500/20 text-blue-500"
+                                        j?.status === "booked" ? "bg-warning/20 text-warning" : "bg-blue-500/20 text-blue-500"
                                     }`}>
-                                        {j.status === "booked" ? "Booked - Awaiting Payment" : t("inProgress")}
+                                        {j?.status === "booked" ? "Booked - Awaiting Payment" : t("inProgress")}
                                     </Badge>
-                                    {j.paymentStatus === "secured" && (
+                                    {j?.paymentStatus === "secured" && (
                                         <span className="text-[10px] font-black bg-success text-success-foreground px-2 py-0.5 rounded flex items-center gap-1 uppercase shadow-sm mt-1">
                                             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Payment Secured
                                         </span>
@@ -200,9 +200,9 @@ const MyWork = () => {
                             </div>
                             <div className="mt-4 pt-4 border-t border-border flex justify-between items-center text-sm font-medium">
                                 <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Calendar size={14} /> <span>Assigned on {new Date(j.updatedAt || j.createdAt).toLocaleDateString()}</span>
+                                    <Calendar size={14} /> <span>Assigned on {j?.updatedAt || j?.createdAt ? new Date(j.updatedAt || j.createdAt).toLocaleDateString() : 'N/A'}</span>
                                 </div>
-                                <span className="text-primary font-bold">₹{j.wage}</span>
+                                <span className="text-primary font-bold">₹{j?.wage || 0}</span>
                             </div>
                         </div>
                     )) : (
@@ -215,22 +215,26 @@ const MyWork = () => {
                 {/* ── WORK HISTORY TAB ── */}
                 <TabsContent value="history" className="space-y-4">
                     {workHistory.length > 0 ? workHistory.map((w) => (
-                        <div key={w._id} className="glass-card p-5 flex flex-col sm:flex-row sm:items-center gap-4 group cursor-pointer hover:border-primary/30 transition-all shadow-sm relative overflow-hidden">
+                        <div 
+                            key={w?._id || Math.random()} 
+                            onClick={() => navigate(`/dashboard/worker/jobs/${w?._id}`)}
+                            className="glass-card p-5 flex flex-col sm:flex-row sm:items-center gap-4 group cursor-pointer hover:border-primary/30 transition-all shadow-sm relative overflow-hidden"
+                        >
                             <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-12 -mt-12 transition-all group-hover:bg-primary/10" />
                             <div className="w-14 h-14 rounded-2xl bg-success/10 text-success flex items-center justify-center text-2xl shrink-0 border border-success/20">
                                 💼
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors truncate">{w.title}</h4>
+                                    <h4 className="font-bold text-lg group-hover:text-primary transition-colors truncate">{w?.title || "Completed Job"}</h4>
                                     <Badge className="bg-success/10 text-success hover:bg-success/20 border-none uppercase text-[9px]">{t("completed")}</Badge>
                                 </div>
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                                        <MapPin size={12} /> <span className="truncate">{w.location}</span>
+                                        <MapPin size={12} /> <span className="truncate">{typeof w?.location === 'object' ? (w?.location?.address || 'Unknown') : (w?.location || 'Unknown')}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-                                        <Calendar size={12} /> <span>{new Date(w.createdAt).toLocaleDateString()}</span>
+                                        <Calendar size={12} /> <span>{w?.createdAt ? new Date(w.createdAt).toLocaleDateString() : 'N/A'}</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-warning">
                                         <Star size={12} className="fill-warning" />
@@ -240,7 +244,7 @@ const MyWork = () => {
                             </div>
                             <div className="shrink-0 flex flex-col items-end justify-center sm:pl-4 sm:border-l border-border/50">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Earned</p>
-                                <p className="text-xl font-black text-foreground">₹{w.wage}</p>
+                                <p className="text-xl font-black text-foreground">₹{w?.wage || 0}</p>
                             </div>
                         </div>
                     )) : (
