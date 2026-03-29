@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
-import { getWallet, addFunds, getTransactions } from '@/services/walletService';
+import { getWallet, addFunds, withdrawFunds, getTransactions } from '@/services/walletService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const WalletPage = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth() as any;
     const { toast } = useToast();
     const [wallet, setWallet] = useState({ balance: 0, pending: 0 });
     const [transactions, setTransactions] = useState([]);
@@ -66,16 +66,21 @@ const WalletPage = () => {
         }
 
         setIsWithdrawing(true);
-        // Fake dummy delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        toast({ 
-            title: 'Withdrawal Initiated', 
-            description: `₹${withdrawAmount} is being transferred to your bank account. (Dummy Action)` 
-        });
-        
-        setWithdrawAmount('');
-        setIsWithdrawing(false);
+        try {
+            await withdrawFunds(Number(withdrawAmount));
+            toast({ 
+                title: 'Withdrawal Successful', 
+                description: `₹${withdrawAmount} has been deducted and transferred to your bank account.` 
+            });
+            setWithdrawAmount('');
+            fetchData();
+            if (refreshUser) refreshUser();
+        } catch (error: any) {
+            const message = error.response?.data?.message || 'Failed to withdraw funds.';
+            toast({ variant: 'destructive', title: 'Error', description: message });
+        } finally {
+            setIsWithdrawing(false);
+        }
     };
 
     if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;

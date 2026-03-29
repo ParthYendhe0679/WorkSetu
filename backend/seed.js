@@ -79,10 +79,10 @@ const users = [
         location: 'Pune'
     },
     {
-        name: 'Rajesh Gupta', // Constructor
-        email: 'rajesh@constructor.com',
+        name: 'Rajesh Gupta', // Contractor
+        email: 'rajesh@contractor.com',
         password: 'password123',
-        role: 'constructor',
+        role: 'contractor',
         phone: '9876543216',
         location: 'Bangalore'
     }
@@ -108,7 +108,7 @@ const seedData = async () => {
 
         const homeowner = createdUsers.find(u => u.role === 'user');
         const homeowners = createdUsers.filter(u => u.role === 'user');
-        const constructor = createdUsers.find(u => u.role === 'constructor');
+        const contractor = createdUsers.find(u => u.role === 'contractor');
         const worker = createdUsers.find(u => u.role === 'worker');
 
         // Create Sample Job
@@ -132,7 +132,7 @@ const seedData = async () => {
             duration: '6 months',
             workersNeeded: 20,
             totalDays: 180,
-            constructor: constructor._id,
+            contractor: contractor._id,
             status: 'in-progress'
         });
 

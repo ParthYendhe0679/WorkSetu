@@ -262,7 +262,10 @@ const JobDetailsPage = () => {
                                         <div className="w-[1px] h-10 bg-border/40 mx-2" />
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60">Posted In</span>
-                                            <span className="text-lg font-black text-foreground flex items-center gap-2"><MapPin size={18} className="text-primary" /> {job.location}</span>
+                                            <span className="text-lg font-black text-foreground flex items-center gap-2">
+                                                <MapPin size={18} className="text-primary" /> 
+                                                {typeof job.location === 'object' ? (job.location?.address || 'Unknown') : (job.location || 'Unknown')}
+                                            </span>
                                         </div>
                                         <div className="w-[1px] h-10 bg-border/40 mx-2" />
                                         <div className="flex flex-col">

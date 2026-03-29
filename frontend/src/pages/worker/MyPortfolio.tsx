@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import {
     Plus, Trash2, ImagePlus, Loader2, Layers, X, ChevronLeft, ChevronRight,
-    MapPin, Calendar, Clock, User as UserIcon, Zap, Award, AlertCircle
+    MapPin, Calendar, Clock, User as UserIcon, Zap, Award, AlertCircle, Navigation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,8 @@ const MyPortfolio = () => {
     const [lightboxEntry, setLightboxEntry] = useState<PortfolioEntry | null>(null);
     const [lightboxIdx, setLightboxIdx] = useState(0);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [detectLoading, setDetectLoading] = useState(false);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -100,6 +102,45 @@ const MyPortfolio = () => {
         setForm({ title: '', description: '', category: 'Other', clientName: '', location: '', duration: '', completionYear: CURRENT_YEAR.toString() });
         setSelectedFiles([]);
         setPreviewUrls([]);
+    };
+
+    const handleDetectLocation = () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setDetectLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+                    
+                    const res = await fetch(
+                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`
+                    );
+                    const data = await res.json();
+                    
+                    if (data.status === 'OK' && data.results.length > 0) {
+                        const address = data.results[0].formatted_address;
+                        setForm(prev => ({ ...prev, location: address }));
+                        toast.success("Location detected!");
+                    } else {
+                        toast.error("Could not determine address");
+                    }
+                } catch (err) {
+                    toast.error("Failed to fetch address");
+                } finally {
+                    setDetectLoading(false);
+                }
+            },
+            (error) => {
+                setDetectLoading(false);
+                toast.error("Location access denied or failed");
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
+        );
     };
 
     const handleDelete = async (id: string) => {
@@ -364,13 +405,36 @@ const MyPortfolio = () => {
                                         {/* Row: Location + Client */}
                                         <div className="grid grid-cols-2 gap-3">
                                             <div>
-                                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1.5 block">Location</label>
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <label className="text-xs font-black uppercase tracking-widest text-muted-foreground block">Location</label>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => setForm(prev => ({ ...prev, location: "Mumbai, Maharashtra" }))}
+                                                        className="text-[10px] font-bold text-primary hover:underline bg-primary/5 px-1.5 py-0.5 rounded"
+                                                    >
+                                                        Quick: Mumbai
+                                                    </button>
+                                                    <button 
+                                                        type="button"
+                                                        onClick={handleDetectLocation}
+                                                        disabled={detectLoading}
+                                                        className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline disabled:opacity-50"
+                                                    >
+                                                        {detectLoading ? <Loader2 size={10} className="animate-spin" /> : <Navigation size={10} />}
+                                                        Auto-Detect
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="relative">
                                                 <Input
                                                     value={form.location}
                                                     onChange={e => setForm({ ...form, location: e.target.value })}
-                                                    placeholder="e.g. Pune"
-                                                    className="rounded-xl"
+                                                    placeholder="e.g. Mumbai"
+                                                    className="rounded-xl pl-9"
                                                 />
+                                                <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                            </div>
                                             </div>
                                             <div>
                                                 <label className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1.5 block">Client Name</label>

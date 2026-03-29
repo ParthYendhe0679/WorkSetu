@@ -10,6 +10,11 @@ export const addFunds = async (amount: number) => {
     return response.data;
 };
 
+export const withdrawFunds = async (amount: number) => {
+    const response = await api.post('/wallet/withdraw', { amount });
+    return response.data;
+};
+
 export const getTransactions = async () => {
     const response = await api.get('/wallet/transactions');
     return response.data;

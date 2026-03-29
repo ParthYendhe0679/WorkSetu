@@ -93,7 +93,7 @@ exports.getNearbyJobs = async (req, res, next) => {
         
         // 2. Fetch Projects (Long term)
         let projects = await Project.find({ isPublicPost: true, status: 'open' })
-            .populate('constructor', 'name profileImage');
+            .populate('createdBy', 'name profileImage');
 
         const transformedProjects = projects.map(p => ({
             _id: p._id,
@@ -103,7 +103,7 @@ exports.getNearbyJobs = async (req, res, next) => {
             location: { address: p.location },
             type: 'project',
             status: p.status,
-            postedBy: p.constructor
+            postedBy: p.createdBy
         }));
 
         const transformedJobs = jobs.map(j => ({
@@ -377,11 +377,11 @@ exports.getJobRequests = async (req, res, next) => {
             status: 'pending'
         }).populate('clientId', 'name phone email');
 
-        // 2. Project Invitations (Constructor requests)
+        // 2. Project Invitations (Contractor requests)
         const projectInvites = await ProjectApplication.find({
             workerId: req.user.id,
             status: 'pending',
-            message: 'Direct invite from constructor' // Distinguish from worker applications
+            message: 'Direct invite from contractor' // Distinguish from worker applications
         }).populate('projectId', 'title description wagePerDay location duration');
 
         // Transform Project Invites to match request format
@@ -389,7 +389,7 @@ exports.getJobRequests = async (req, res, next) => {
             _id: inv._id,
             jobId: inv.projectId._id,
             title: inv.projectId.title,
-            clientId: { name: 'Constructor Invite' },
+            clientId: { name: 'Contractor Invite' },
             type: 'project',
             status: inv.status,
             createdAt: inv.createdAt

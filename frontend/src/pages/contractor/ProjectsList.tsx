@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { getMyProjects, deleteProject } from "@/services/projectService";
-import CreateProjectModal from "@/components/constructor/CreateProjectModal";
+import CreateProjectModal from "@/components/contractor/CreateProjectModal";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
@@ -45,7 +45,7 @@ const ProjectsList = () => {
       toast.success("Project deleted");
       setProjects(prev => prev.filter(p => p._id !== id));
     } catch (err: any) {
-      toast.error(err?.message || "Delete failed");
+      toast.error(err?.response?.data?.message || err?.message || "Delete failed");
     } finally {
       setDeletingId(null);
     }
@@ -104,7 +104,7 @@ const ProjectsList = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="glass-card group hover:border-primary/40 transition-all p-6 relative overflow-hidden cursor-pointer"
-                  onClick={() => navigate(`/dashboard/constructor/projects/${p._id}`)}
+                  onClick={() => navigate(`/dashboard/contractor/projects/${p._id}`)}
                 >
                   {/* Status badge */}
                   <div className={`absolute top-0 right-0 px-4 py-1.5 rounded-bl-2xl font-black text-[10px] uppercase tracking-widest ${STATUS_STYLE[p.status] || "bg-secondary text-muted-foreground"}`}>
@@ -148,7 +148,7 @@ const ProjectsList = () => {
                       size="sm"
                       variant="outline"
                       className="flex-1 rounded-xl font-bold gap-2 text-xs border-primary/20 text-primary hover:bg-primary/10"
-                      onClick={() => navigate(`/dashboard/constructor/projects/${p._id}`)}
+                      onClick={() => navigate(`/dashboard/contractor/projects/${p._id}`)}
                     >
                       <Eye size={14} /> View
                     </Button>

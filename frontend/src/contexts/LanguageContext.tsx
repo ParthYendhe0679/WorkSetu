@@ -141,7 +141,7 @@ const translations: Record<string, Record<Lang, string>> = {
   hireSuccess: { en: "Hired successfully", hi: "सफलतापूर्वक भर्ती किया गया", mr: "यशस्वीरित्या कामावर घेतले" },
   profileUpdated: { en: "Profile updated!", hi: "प्रोफ़ाइल अपडेट की गई!", mr: "प्रोफाइल अपडेट केली!" },
 
-  // Constructor Metrics
+  // Contractor Metrics
   workersHired: { en: "Workers Hired", hi: "कामगार भर्ती किए", mr: "कामगार कामावर घेतले" },
   projectDuration: { en: "Project Duration", hi: "परियोजना अवधि", mr: "प्रकल्प कालावधी" },
   workerManagement: { en: "Worker Management", hi: "कामगार प्रबंधन", mr: "कामगार व्यवस्थापन" },
@@ -158,6 +158,27 @@ const translations: Record<string, Record<Lang, string>> = {
   noApplicants: { en: "Waiting for skilled workers to apply", hi: "कुशल कामगारों के आवेदन की प्रतीक्षा है", mr: "कुशल कामगारांच्या अर्जाची प्रतीक्षा आहे" },
   howItWorks: { en: "How It Works", hi: "यह कैसे काम करता है", mr: "हे कसे कार्य करते" },
   readyToStart: { en: "Ready to get started?", hi: "शुरू करने के लिए तैयार हैं?", mr: "सुरू करायला तयार आहात?" },
+
+  // Finances page
+  financesTitle: { en: "Earnings & Expenses", hi: "कमाई और खर्च", mr: "कमाई आणि खर्च" },
+  financesDesc: { en: "Manage your finances and track your net income", hi: "अपने वित्त का प्रबंधन करें और अपनी शुद्ध आय ट्रैक करें", mr: "तुमचे वित्त व्यवस्थापित करा आणि तुमच्या निव्वळ उत्पन्नाचा मागोवा घ्या" },
+  exportExcel: { en: "Export Excel", hi: "एक्सेल निर्यात करें", mr: "एक्सेल निर्यात करा" },
+  totalEarnings: { en: "Total Earnings", hi: "कुल कमाई", mr: "एकूण कमाई" },
+  totalExpenses: { en: "Total Expenses", hi: "कुल खर्च", mr: "एकूण खर्च" },
+  netIncome: { en: "Net Income", hi: "शुद्ध आय", mr: "निव्वळ उत्पन्न" },
+  recentEarnings: { en: "Recent Earnings", hi: "हाल की कमाई", mr: "अलीकडील कमाई" },
+  recentEarningsDesc: { en: "Automatic earnings from completed jobs", hi: "पूर्ण नौकरियों से स्वचालित कमाई", mr: "पूर्ण झालेल्या नोकऱ्यांमधून स्वयंचलित कमाई" },
+  noEarningsYet: { en: "No earnings recorded yet", hi: "अभी तक कोई कमाई दर्ज नहीं की गई है", mr: "अद्याप कोणतीही कमाई नोंदवली नाही" },
+  expenses: { en: "Expenses", hi: "खर्च", mr: "खर्च" },
+  expensesDesc: { en: "Track your tool purchases, travel, etc.", hi: "अपनी टूल खरीदारी, यात्रा आदि को ट्रैक करें", mr: "तुमच्या साधन खरेदी, प्रवास इत्यादींचा मागोवा घ्या" },
+  addExpense: { en: "Add Expense", hi: "खर्च जोड़ें", mr: "खर्च जोडा" },
+  recordNewExpense: { en: "Record New Expense", hi: "नया खर्च दर्ज करें", mr: "नवीन खर्च नोंदवा" },
+  titleLabel: { en: "Title", hi: "शीर्षक", mr: "शीर्षक" },
+  titlePlaceholder: { en: "e.g., New Cement Mixer", hi: "जैसे: नया सीमेंट मिक्सर", mr: "उदा. नवीन सिमेंट मिक्सर" },
+  amountRs: { en: "Amount (₹)", hi: "राशि (₹)", mr: "रक्कम (₹)" },
+  date: { en: "Date", hi: "तारीख", mr: "तारीख" },
+  saveExpense: { en: "Save Expense", hi: "खर्च सहेजें", mr: "खर्च सेव्ह करा" },
+  noExpensesYet: { en: "No expenses recorded yet", hi: "अभी तक कोई खर्च दर्ज नहीं किया गया है", mr: "अद्याप कोणताही खर्च नोंदवला नाही" },
 };
 
 const LanguageContext = createContext<{

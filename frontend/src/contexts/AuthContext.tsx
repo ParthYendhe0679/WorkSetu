@@ -6,7 +6,7 @@ interface User {
   _id?: string;       // Mongo also sends _id; alias of id
   name: string;
   email: string;
-  role: 'worker' | 'user' | 'constructor';
+  role: 'worker' | 'user' | 'contractor';
   language?: string;
   skills?: string[];
   completedJobs?: number;

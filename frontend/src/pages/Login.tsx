@@ -36,7 +36,7 @@ const Login = () => {
     useEffect(() => {
         if (user) {
             if (user.role === "worker") navigate("/dashboard/worker");
-            else if (user.role === "constructor") navigate("/dashboard/constructor");
+            else if (user.role === "contractor") navigate("/dashboard/contractor");
             else navigate("/dashboard/client");
         }
     }, [user, navigate]);
@@ -175,7 +175,7 @@ const Login = () => {
                                             >
                                                 <option value="user">Homeowner / Client</option>
                                                 <option value="worker">Worker</option>
-                                                <option value="constructor">Constructor</option>
+                                                <option value="contractor">Contractor</option>
                                             </select>
                                         </div>
                                     </motion.div>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Search, Star, MapPin, Loader2, AlertCircle, UserCheck, ShieldCheck, Zap } from "lucide-react";
+import { Search, Star, MapPin, Loader2, AlertCircle, UserCheck, ShieldCheck, Zap, Filter } from "lucide-react";
 import { getWorkers } from "@/services/userService";
 import { Badge } from "@/components/ui/badge";
+import { CONSTRUCTION_SKILLS } from "@/constants/skills";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -42,7 +43,8 @@ const FindWorkers = () => {
   const [filtered, setFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [skillFilter, setSkillFilter] = useState("all");
+  const [skillFilter, setSkillFilter] = useState("All");
+  const [ratingFilter, setRatingFilter] = useState("All");
 
   useEffect(() => {
     const fetchWorkers = async () => {
@@ -61,11 +63,6 @@ const FindWorkers = () => {
     fetchWorkers();
   }, []);
 
-  // Build unique skills list for filter pills
-  const allSkills = Array.from(
-    new Set(workers.flatMap((w) => w.skills || []))
-  ).slice(0, 8);
-
   useEffect(() => {
     let result = workers;
     if (search) {
@@ -77,13 +74,17 @@ const FindWorkers = () => {
           w.location?.toLowerCase().includes(q)
       );
     }
-    if (skillFilter !== "all") {
+    if (skillFilter !== "All") {
       result = result.filter((w) =>
         w.skills?.some((s: string) => s.toLowerCase() === skillFilter.toLowerCase())
       );
     }
+    if (ratingFilter !== "All") {
+      const minRating = ratingFilter === "4+" ? 4 : 3;
+      result = result.filter((w) => (w.averageRating || 0) >= minRating);
+    }
     setFiltered(result);
-  }, [search, skillFilter, workers]);
+  }, [search, skillFilter, ratingFilter, workers]);
 
   const handleHireWorker = (worker: any) => {
     // Navigate to Post Job page with worker pre-selected
@@ -116,34 +117,32 @@ const FindWorkers = () => {
         </div>
       </motion.div>
 
-      {/* Skill Filter Pills */}
-      {allSkills.length > 0 && (
-        <motion.div variants={item} className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSkillFilter("all")}
-            className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${
-              skillFilter === "all"
-                ? "bg-primary text-primary-foreground border-primary shadow-md"
-                : "bg-secondary text-muted-foreground border-border/50 hover:border-primary/40"
-            }`}
-          >
-            All
-          </button>
-          {allSkills.map((skill) => (
-            <button
-              key={skill}
-              onClick={() => setSkillFilter(skill === skillFilter ? "all" : skill)}
-              className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border ${
-                skillFilter === skill
-                  ? "bg-primary text-primary-foreground border-primary shadow-md"
-                  : "bg-secondary text-muted-foreground border-border/50 hover:border-primary/40"
-              }`}
-            >
-              {skill}
-            </button>
-          ))}
-        </motion.div>
-      )}
+      {/* Comprehensive Filters Bar */}
+      <motion.div variants={item} className="flex flex-col sm:flex-row flex-wrap gap-4 items-start sm:items-center bg-secondary/30 p-4 rounded-2xl border border-border/50">
+        <div className="flex items-center gap-2 mr-2">
+          <Filter size={16} className="text-muted-foreground" />
+          <span className="text-sm font-bold text-foreground tracking-tight">Filters</span>
+        </div>
+        
+        <select 
+          value={skillFilter} 
+          onChange={(e) => setSkillFilter(e.target.value)}
+          className="h-9 px-3 w-40 rounded-lg border border-border bg-background text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+        >
+          <option value="All">All Skills</option>
+          {CONSTRUCTION_SKILLS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        
+        <select 
+          value={ratingFilter} 
+          onChange={(e) => setRatingFilter(e.target.value)}
+          className="h-9 px-3 w-36 rounded-lg border border-border bg-background text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/50"
+        >
+          <option value="All">Any Rating</option>
+          <option value="4+">4+ Stars</option>
+          <option value="3+">3+ Stars</option>
+        </select>
+      </motion.div>
 
       {/* Content */}
       {loading ? (

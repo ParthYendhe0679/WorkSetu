@@ -107,7 +107,7 @@ exports.completeOnboarding = async (req, res, next) => {
         }
 
         // Update role
-        if (role && ['worker', 'user', 'constructor'].includes(role)) {
+        if (role && ['worker', 'client', 'contractor'].includes(role)) {
             user.role = role;
         }
 

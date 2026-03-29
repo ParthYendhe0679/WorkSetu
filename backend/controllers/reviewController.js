@@ -18,7 +18,7 @@ const calculateRank = (score) => {
 
 // ─── @desc    Submit feedback after job completion ─────────────────────────
 // ─── @route   POST /api/reviews ───────────────────────────────────────────
-// ─── @access  Private (User / Constructor only) ────────────────────────────
+// ─── @access  Private (User / Contractor only) ────────────────────────────
 exports.submitFeedback = async (req, res) => {
     try {
         const { jobId, rating, notSatisfied, comment, completedEarly, hypeAwarded } = req.body;

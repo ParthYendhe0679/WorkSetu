@@ -127,7 +127,7 @@ const FindWork = () => {
     setApplyingProjectId(projectId);
     try {
       await applyToProject(projectId);
-      toast.success(`Applied to "${projectTitle}"!`, { description: "The constructor will review your application." });
+      toast.success(`Applied to "${projectTitle}"!`, { description: "The contractor will review your application." });
       fetchProjectData();
     } catch (err: any) {
       toast.error(err?.message || "Application failed");
@@ -267,7 +267,7 @@ const FindWork = () => {
               <div className="py-20 text-center text-muted-foreground glass-card border-dashed">
                 <Building2 size={48} className="mx-auto mb-4 opacity-20" />
                 <p className="font-bold text-lg">No public projects available right now.</p>
-                <p className="text-sm mt-1">Check back soon — constructors will post project opportunities here.</p>
+                <p className="text-sm mt-1">Check back soon — contractors will post project opportunities here.</p>
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -287,7 +287,7 @@ const FindWork = () => {
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-bold text-base truncate">{p.title}</h3>
-                          <p className="text-xs text-muted-foreground truncate">{p.constructor?.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{p.createdBy?.name}</p>
                         </div>
                       </div>
 

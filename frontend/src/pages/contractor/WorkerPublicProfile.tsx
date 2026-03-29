@@ -4,13 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     ArrowLeft, MapPin, Star, Trophy, Zap, TrendingUp, CheckCircle,
     Phone, Mail, Loader2, ImagePlus, ChevronLeft, ChevronRight, X,
-    Calendar, Clock, User as UserIcon, Layers, AlertCircle, Award
+    Calendar, Clock, User as UserIcon, Layers, AlertCircle, Award, Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getUserProfile } from "@/services/userService";
 import { getWorkerPortfolio, EXPERIENCE_LEVEL_CONFIG, PortfolioEntry, ExperienceLevel } from "@/services/portfolioService";
 import { getWorkerReviews, ReviewData } from "@/services/reviewService";
+import { getMyProjects, requestWorker } from "@/services/projectService";
+import { 
+    DropdownMenu, 
+    DropdownMenuContent, 
+    DropdownMenuItem, 
+    DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -39,6 +46,10 @@ const WorkerPublicProfile = () => {
     const [lightboxEntry, setLightboxEntry] = useState<PortfolioEntry | null>(null);
     const [lightboxIdx, setLightboxIdx] = useState(0);
     const [activeTab, setActiveTab] = useState<'portfolio' | 'reviews'>('portfolio');
+    const [contractorProjects, setContractorProjects] = useState<any[]>([]);
+    const [inviteLoading, setInviteLoading] = useState<string | null>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
 
     useEffect(() => {
         if (workerId) fetchAll(workerId);
@@ -57,6 +68,11 @@ const WorkerPublicProfile = () => {
             setExperienceLevel(portfolioRes.experienceLevel || 'Beginner');
             setIsBeginnerEligible(portfolioRes.isBeginnerEligible || false);
             setReviews(reviewsRes.data || []);
+
+            // 4. Fetch contractor's own projects to allow inviting
+            const projectsRes = await getMyProjects();
+            setContractorProjects(projectsRes.data?.filter((p: any) => p.status === 'open' || p.status === 'in-progress') || []);
+
         } catch (err) {
             toast.error("Failed to load worker profile");
         } finally {
@@ -117,7 +133,6 @@ const WorkerPublicProfile = () => {
                             <p className="text-muted-foreground text-sm font-medium flex items-center gap-1 mt-0.5">
                                 <MapPin size={12} className="text-primary" /> {workerData.location || "Location not set"}
                             </p>
-
                             {/* Badges row */}
                             <div className="flex flex-wrap items-center gap-2 mt-3">
                                 {/* Experience level */}
@@ -140,6 +155,45 @@ const WorkerPublicProfile = () => {
                                     <CheckCircle size={11} /> Verified
                                 </span>
                             </div>
+                        </div>
+
+                        {/* Invite Actions */}
+                        <div className="shrink-0 flex gap-2">
+                           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+                               <DropdownMenuTrigger asChild>
+                                   <Button size="sm" className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20">
+                                       <Award size={14} /> Hire for Project
+                                   </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end" className="w-56 rounded-xl p-2">
+                                   <div className="px-2 py-1.5 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Select Project</div>
+                                   {contractorProjects.length === 0 ? (
+                                       <DropdownMenuItem disabled className="text-xs italic">No active projects found</DropdownMenuItem>
+                                   ) : contractorProjects.map(p => (
+                                       <DropdownMenuItem 
+                                          key={p._id} 
+                                          className="rounded-lg text-sm font-bold cursor-pointer"
+                                          onSelect={async (e) => {
+                                             e.preventDefault();
+                                             if (!workerId || inviteLoading) return;
+                                             setInviteLoading(p._id);
+                                             try {
+                                                await requestWorker(p._id, workerId);
+                                                toast.success(`Invite sent for "${p.title}"!`);
+                                                setIsDropdownOpen(false);
+                                             } catch (err: any) {
+                                                toast.error(err.response?.data?.message || "Failed to invite");
+                                             } finally {
+                                                setInviteLoading(null);
+                                             }
+                                          }}
+                                       >
+                                          {inviteLoading === p._id ? <Loader2 size={12} className="animate-spin mr-2" /> : <Building2 size={14} className="mr-2 text-primary" />}
+                                          {p.title}
+                                       </DropdownMenuItem>
+                                   ))}
+                               </DropdownMenuContent>
+                           </DropdownMenu>
                         </div>
                     </div>
 

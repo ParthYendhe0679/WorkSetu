@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   HardHat, Building2, Home, ArrowRight, ArrowLeft, Lock, Eye, EyeOff,
-  Loader2, Check, Globe, Phone, MapPin, Sparkles
+  Loader2, Check, Globe, Phone, MapPin, Sparkles, Navigation
 } from "lucide-react";
 import { toast } from "sonner";
 
 const roleOptions = [
   { key: "worker", apiValue: "worker", icon: HardHat, emoji: "👷", color: "from-amber-500 to-orange-500", bg: "bg-amber-500/10" },
-  { key: "contractor", apiValue: "constructor", icon: Building2, emoji: "🏗️", color: "from-blue-500 to-indigo-500", bg: "bg-blue-500/10" },
+  { key: "contractor", apiValue: "contractor", icon: Building2, emoji: "🏗️", color: "from-blue-500 to-indigo-500", bg: "bg-blue-500/10" },
   { key: "homeowner", apiValue: "user", icon: Home, emoji: "🏠", color: "from-emerald-500 to-green-500", bg: "bg-emerald-500/10" },
 ];
 
@@ -45,6 +45,8 @@ const Onboarding = () => {
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [detectLoading, setDetectLoading] = useState(false);
+
 
   // Redirect if no user
   useEffect(() => {
@@ -97,7 +99,7 @@ const Onboarding = () => {
       // Navigate to the correct dashboard
       const role = roleData?.apiValue;
       if (role === "worker") navigate("/dashboard/worker");
-      else if (role === "constructor") navigate("/dashboard/constructor");
+      else if (role === "contractor") navigate("/dashboard/contractor");
       else navigate("/dashboard/client");
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Something went wrong");
@@ -105,6 +107,41 @@ const Onboarding = () => {
       setIsSubmitting(false);
     }
   };
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported");
+      return;
+    }
+
+    setDetectLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+          const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${API_KEY}`);
+          const data = await res.json();
+          if (data.status === "OK" && data.results.length > 0) {
+            setLocation(data.results[0].formatted_address);
+            toast.success("Location detected!");
+          } else {
+            toast.error("Could not fetch address");
+          }
+        } catch {
+          toast.error("Geocoding failed");
+        } finally {
+          setDetectLoading(false);
+        }
+      },
+      () => {
+        setDetectLoading(false);
+        toast.error("Location access denied");
+      },
+      { timeout: 5000 }
+    );
+  };
+
 
   const progressPercent = (currentStep / 3) * 100;
 
@@ -297,8 +334,28 @@ const Onboarding = () => {
                         />
                       </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboard-location">Location (Optional)</Label>
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="onboard-location">Location (Optional)</Label>
+                        <div className="flex gap-2">
+                           <button 
+                             type="button" 
+                             onClick={() => setLocation("Mumbai, Maharashtra")}
+                             className="text-[10px] font-bold text-primary hover:underline"
+                           >
+                             Quick: Mumbai
+                           </button>
+                           <button 
+                             type="button" 
+                             onClick={handleDetectLocation}
+                             disabled={detectLoading}
+                             className="text-[10px] font-bold text-primary flex items-center gap-1 hover:underline disabled:opacity-50"
+                           >
+                             {detectLoading ? <Loader2 size={10} className="animate-spin" /> : <Navigation size={10} />}
+                             Detect
+                           </button>
+                        </div>
+                      </div>
                       <div className="relative">
                         <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <Input

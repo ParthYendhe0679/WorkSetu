@@ -7,7 +7,7 @@ import { HardHat, Building2, Home, ArrowRight } from "lucide-react";
 
 const roles = [
   { key: "worker", icon: HardHat, emoji: "👷", route: "/dashboard/worker", color: "from-primary to-primary/70" },
-  { key: "contractor", icon: Building2, emoji: "🏗️", route: "/dashboard/constructor", color: "from-accent to-accent/70" },
+  { key: "contractor", icon: Building2, emoji: "🏗️", route: "/dashboard/contractor", color: "from-accent to-accent/70" },
   { key: "homeowner", icon: Home, emoji: "🏠", route: "/dashboard/client", color: "from-success to-success/70" },
 ];
 

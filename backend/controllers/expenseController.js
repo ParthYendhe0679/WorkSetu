@@ -1,4 +1,6 @@
 const Expense = require('../models/Expense');
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 
 // @desc    Get user expenses
 // @route   GET /api/expenses
@@ -31,11 +33,36 @@ exports.addExpense = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Please provide title and amount' });
         }
 
+        const user = await User.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (!user.wallet || user.wallet.balance < Number(amount)) {
+            return res.status(400).json({ success: false, message: 'Insufficient wallet balance to cover this expense' });
+        }
+
+        // Deduct from wallet
+        user.wallet.balance -= Number(amount);
+        user.markModified('wallet');
+        await user.save();
+
+        // Log the expense
         const expense = await Expense.create({
             workerId: req.user.id,
             title,
-            amount,
+            amount: Number(amount),
             date: date || Date.now()
+        });
+
+        // Log the transaction history so it shows in Wallet Page
+        await Transaction.create({
+            userId: req.user.id,
+            amount: -Number(amount),
+            type: 'debit',
+            status: 'completed',
+            description: `Expense: ${title}`
         });
 
         res.status(201).json({
@@ -66,11 +93,29 @@ exports.deleteExpense = async (req, res, next) => {
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
+        const user = await User.findById(req.user.id);
+        
+        // Refund wallet
+        if (user && user.wallet) {
+            user.wallet.balance += Number(expense.amount);
+            user.markModified('wallet');
+            await user.save();
+
+            // Log refund transaction
+            await Transaction.create({
+                userId: req.user.id,
+                amount: Number(expense.amount),
+                type: 'credit',
+                status: 'completed',
+                description: `Refund for deleted expense: ${expense.title}`
+            });
+        }
+
         await expense.deleteOne();
 
         res.status(200).json({
             success: true,
-            message: 'Expense removed'
+            message: 'Expense removed and refunded to wallet'
         });
     } catch (error) {
         res.status(400).json({

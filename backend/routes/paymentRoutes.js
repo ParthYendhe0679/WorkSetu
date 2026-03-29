@@ -8,7 +8,7 @@ const router = express.Router();
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-router.post('/secure', protect, authorize('user', 'constructor'), securePayment);
-router.post('/release', protect, authorize('user', 'constructor'), releasePayment);
+router.post('/secure', protect, authorize('client', 'contractor'), securePayment);
+router.post('/release', protect, authorize('client', 'contractor'), releasePayment);
 
 module.exports = router;

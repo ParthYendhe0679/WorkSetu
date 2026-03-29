@@ -10,6 +10,14 @@ export const getMyJobs = async () => {
     return response.data;
 };
 
+export const getNearbyJobs = async (lat: number, lng: number, radius?: number) => {
+    const params = new URLSearchParams({ lat: lat.toString(), lng: lng.toString() });
+    if (radius) params.append('radius', radius.toString());
+    
+    const response = await api.get(`/jobs/nearby?${params.toString()}`);
+    return response.data;
+};
+
 export const getMyAssignedJobs = async () => {
     const response = await api.get('/jobs/my-assigned');
     return response.data;

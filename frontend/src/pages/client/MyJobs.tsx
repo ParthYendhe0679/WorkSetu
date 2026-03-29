@@ -63,7 +63,7 @@ const MyJobs = () => {
             <div key={j._id} className="relative group" onClick={() => navigate(`/dashboard/client/jobs/${j._id}`)}>
               <JobCard 
                 title={j.title} 
-                location={j.location} 
+                location={typeof j.location === 'object' ? (j.location?.address || 'Location Hidden') : (j.location || 'Location Hidden')} 
                 budget={`₹${j.wage}`} 
                 duration={j.duration} 
                 tags={[j.skillRequired]} 

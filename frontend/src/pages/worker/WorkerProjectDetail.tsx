@@ -166,7 +166,7 @@ const WorkerProjectDetail = () => {
         <motion.div variants={item} className="glass-card p-5 border-warning/20 bg-warning/5 flex items-center gap-3">
           <AlertCircle className="text-warning shrink-0" size={20} />
           <p className="text-sm font-medium text-muted-foreground">
-            You are not yet assigned to this project. Once the constructor assigns you, you can mark daily attendance.
+            You are not yet assigned to this project. Once the contractor assigns you, you can mark daily attendance.
           </p>
         </motion.div>
       )}

@@ -65,7 +65,7 @@ const projectSchema = new mongoose.Schema({
         enum: ['open', 'in-progress', 'completed'],
         default: 'open'
     },
-    constructor: {
+    createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true

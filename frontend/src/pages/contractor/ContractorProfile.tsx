@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const item = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
 
-const ConstructorProfile = () => {
+const ContractorProfile = () => {
   const { t } = useLanguage();
   const { user, loading, setUser } = useAuth();
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -127,4 +127,4 @@ const ConstructorProfile = () => {
   );
 };
 
-export default ConstructorProfile;
+export default ContractorProfile;

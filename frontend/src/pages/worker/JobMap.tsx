@@ -106,7 +106,7 @@ const JobMap = () => {
     try {
       if (type === 'project') {
         await applyToProject(id);
-        toast.success("Project Application Sent!", { description: "The constructor has been notified of your interest." });
+        toast.success("Project Application Sent!", { description: "The contractor has been notified of your interest." });
       } else {
         await applyForJob(id);
         toast.success("Applied Successfully!", { description: "The employer has been notified directly from the map." });

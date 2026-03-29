@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  role: "worker" | "client" | "constructor";
+  role: "worker" | "client" | "contractor";
 }
 
 
@@ -111,15 +111,15 @@ const DashboardLayout = ({ children, role }: DashboardLayoutProps) => {
     { icon: User, labelKey: "profile", path: "/dashboard/client/profile" },
   ];
 
-  const constructorNav = [
-    { icon: LayoutDashboard, labelKey: "dashboard", path: "/dashboard/constructor" },
-    { icon: FolderGit2, labelKey: "projects", path: "/dashboard/constructor/projects" },
-    { icon: UserPlus, labelKey: "hireWorkers", path: "/dashboard/constructor/hire" },
-    { icon: Wallet, labelKey: "wallet", path: "/dashboard/constructor/wallet" },
-    { icon: User, labelKey: "profile", path: "/dashboard/constructor/profile" },
+  const contractorNav = [
+    { icon: LayoutDashboard, labelKey: "dashboard", path: "/dashboard/contractor" },
+    { icon: FolderGit2, labelKey: "projects", path: "/dashboard/contractor/projects" },
+    { icon: UserPlus, labelKey: "hireWorkers", path: "/dashboard/contractor/hire" },
+    { icon: Wallet, labelKey: "wallet", path: "/dashboard/contractor/wallet" },
+    { icon: User, labelKey: "profile", path: "/dashboard/contractor/profile" },
   ];
 
-  const nav = role === "worker" ? workerNav : role === "client" ? clientNav : constructorNav;
+  const nav = role === "worker" ? workerNav : role === "client" ? clientNav : contractorNav;
 
 
   const NavItems = ({ onNavigate }: { onNavigate?: () => void }) => (

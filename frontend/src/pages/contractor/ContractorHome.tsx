@@ -10,7 +10,7 @@ import api from "@/services/api";
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
-const ConstructorHome = () => {
+const ContractorHome = () => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -56,7 +56,7 @@ const ConstructorHome = () => {
             Project Manager Dashboard
           </p>
         </div>
-        <Button onClick={() => navigate("/dashboard/constructor/projects")} className="gradient-primary rounded-xl font-bold gap-2 shadow-lg hover:opacity-90 transition-all">
+        <Button onClick={() => navigate("/dashboard/contractor/projects")} className="gradient-primary rounded-xl font-bold gap-2 shadow-lg hover:opacity-90 transition-all">
           <Plus size={18} /> New Project
         </Button>
       </div>
@@ -97,7 +97,7 @@ const ConstructorHome = () => {
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/constructor/projects/${project._id}`)} className="text-xs font-bold hover:text-primary">
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/contractor/projects/${project._id}`)} className="text-xs font-bold hover:text-primary">
                   Details
                 </Button>
               </li>
@@ -113,4 +113,4 @@ const ConstructorHome = () => {
   );
 };
 
-export default ConstructorHome;
+export default ContractorHome;

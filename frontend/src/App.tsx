@@ -16,7 +16,7 @@ import WalletPage from "./pages/WalletPage";
 // Layouts
 import WorkerLayout from "./pages/worker/WorkerLayout";
 import ClientLayout from "./pages/client/ClientLayout";
-import ConstructorLayout from "./pages/constructor/ConstructorLayout";
+import ContractorLayout from "./pages/contractor/ContractorLayout";
 
 // Worker Pages
 import WorkerHome from "./pages/worker/WorkerHome";
@@ -36,13 +36,13 @@ import JobDetailsPage from "./pages/client/JobDetailsPage";
 import FindWorkers from "./pages/client/FindWorkers";
 import ClientProfile from "./pages/client/ClientProfile";
 
-// Constructor Pages
-import ConstructorHome from "./pages/constructor/ConstructorHome";
-import ProjectsList from "./pages/constructor/ProjectsList";
-import ProjectDetailsPage from "./pages/constructor/ProjectDetailsPage";
-import HireWorkersPage from "./pages/constructor/HireWorkersPage";
-import ConstructorProfile from "./pages/constructor/ConstructorProfile";
-import WorkerPublicProfile from "./pages/constructor/WorkerPublicProfile";
+// Contractor Pages
+import ContractorHome from "./pages/contractor/ContractorHome";
+import ProjectsList from "./pages/contractor/ProjectsList";
+import ProjectDetailsPage from "./pages/contractor/ProjectDetailsPage";
+import HireWorkersPage from "./pages/contractor/HireWorkersPage";
+import ContractorProfile from "./pages/contractor/ContractorProfile";
+import WorkerPublicProfile from "./pages/contractor/WorkerPublicProfile";
 
 const queryClient = new QueryClient();
 
@@ -87,14 +87,14 @@ const App = () => (
                   <Route path="wallet" element={<WalletPage />} />
                 </Route>
 
-                {/* Constructor Routes */}
-                <Route path="/dashboard/constructor" element={<ConstructorLayout />}>
-                  <Route index element={<ConstructorHome />} />
+                {/* Contractor Routes */}
+                <Route path="/dashboard/contractor" element={<ContractorLayout />}>
+                  <Route index element={<ContractorHome />} />
                   <Route path="projects" element={<ProjectsList />} />
                   <Route path="projects/:id" element={<ProjectDetailsPage />} />
                   <Route path="hire" element={<HireWorkersPage />} />
                   <Route path="workers/:workerId" element={<WorkerPublicProfile />} />
-                  <Route path="profile" element={<ConstructorProfile />} />
+                  <Route path="profile" element={<ContractorProfile />} />
                   <Route path="wallet" element={<WalletPage />} />
                 </Route>
 

@@ -4,10 +4,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft, Users, UserCheck, Loader2, Building2, Clock,
-  Wallet, CheckCircle2, UserPlus, Briefcase
+  Wallet, CheckCircle2, UserPlus, Briefcase, CheckSquare, Square
 } from "lucide-react";
 import { toast } from "sonner";
-import { getProjectById, getProjectApplicants, assignWorker } from "@/services/projectService";
+import { getProjectById, getProjectApplicants, assignWorker, completeProjectDay } from "@/services/projectService";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import api from "@/services/api";
@@ -32,6 +32,9 @@ const ProjectDetailsPage = () => {
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [applicantsError, setApplicantsError] = useState<string | null>(null);
+  
+  const [startedShifts, setStartedShifts] = useState<string[]>([]);
+  const [payingWorkerId, setPayingWorkerId] = useState<string | null>(null);
 
   const fetchAll = async () => {
     if (!id) return;
@@ -84,6 +87,35 @@ const ProjectDetailsPage = () => {
       toast.error(err?.response?.data?.message || "Completion failed");
     } finally {
       setCompleting(false);
+    }
+  };
+
+  const handleStartShift = (workerId: string) => {
+    setStartedShifts(prev => [...prev, workerId]);
+    toast.success("⏳ Shift started for worker.");
+  };
+
+  const handlePayWorker = async (workerId: string, workerName: string) => {
+    if (!id) return;
+    setPayingWorkerId(workerId);
+    try {
+      const res = await completeProjectDay(id, [workerId]);
+      const wage = project?.wagePerDay || 0;
+      toast.success(`✅ ₹${wage} paid to ${workerName}!`, { 
+        description: `Daily wage successfully transferred from your wallet.` 
+      });
+      setStartedShifts(prev => prev.filter(wid => wid !== workerId));
+      // Update project state from response instead of full refetch
+      if (res?.data) {
+        setProject(res.data);
+      } else {
+        fetchAll();
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || "Payment failed";
+      toast.error(`❌ ${msg}`);
+    } finally {
+      setPayingWorkerId(null);
     }
   };
 
@@ -208,7 +240,7 @@ const ProjectDetailsPage = () => {
                 <p className="text-muted-foreground font-medium">No workers assigned yet.</p>
                 <p className="text-xs text-muted-foreground mt-1">Check the Applicants tab or go to Hire Workers.</p>
                 <Button
-                  onClick={() => navigate("/dashboard/constructor/hire")}
+                  onClick={() => navigate("/dashboard/contractor/hire")}
                   size="sm"
                   className="mt-4 rounded-xl font-bold gap-2"
                 >
@@ -216,20 +248,47 @@ const ProjectDetailsPage = () => {
                 </Button>
               </div>
             ) : (
-              project.assignedWorkers.map((w: any) => (
-                <div key={w._id} className="glass-card flex items-center gap-4 p-5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
-                    {w.profileImage ? <img src={w.profileImage} alt={w.name} className="w-full h-full object-cover" /> : w.name?.[0] || "W"}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold">{w.name}</h4>
-                    <p className="text-xs text-muted-foreground">{w.skills?.join(", ") || "General Worker"}</p>
-                  </div>
-                  <Badge className="bg-success/10 text-success border-success/20 border uppercase text-[9px] font-black">
-                    <CheckCircle2 size={10} className="mr-1" /> Assigned
-                  </Badge>
-                </div>
-              ))
+              <div className="space-y-4">
+                {project.assignedWorkers.map((w: any) => {
+                  const isStarted = startedShifts.includes(w._id);
+                  const isPaying = payingWorkerId === w._id;
+
+                  return (
+                    <div key={w._id} className="glass-card flex items-center justify-between gap-4 p-5">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shrink-0 overflow-hidden">
+                          {w.profileImage ? <img src={w.profileImage} alt={w.name} className="w-full h-full object-cover" /> : w.name?.[0] || "W"}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold truncate">{w.name}</h4>
+                          <p className="text-xs text-muted-foreground truncate">{w.skills?.join(", ") || "General Worker"}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 shrink-0">
+                        {isStarted ? (
+                          <Button 
+                            onClick={() => handlePayWorker(w._id, w.name)} 
+                            disabled={isPaying}
+                            className="bg-success hover:bg-success/90 text-white font-bold text-xs h-9 rounded-xl flex items-center gap-2"
+                          >
+                            {isPaying ? <Loader2 size={14} className="animate-spin" /> : <Wallet size={14} />}
+                            End & Pay
+                          </Button>
+                        ) : (
+                          <Button 
+                            variant="outline"
+                            onClick={() => handleStartShift(w._id)} 
+                            className="font-bold text-xs h-9 rounded-xl flex items-center gap-2"
+                          >
+                            <Clock size={14} /> Start Shift
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}

@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
-const ConstructorLayout = () => {
+const ContractorLayout = () => {
   return (
-    <DashboardLayout role="constructor">
+    <DashboardLayout role="contractor">
       <Outlet />
     </DashboardLayout>
   );
 };
 
-export default ConstructorLayout;
+export default ContractorLayout;

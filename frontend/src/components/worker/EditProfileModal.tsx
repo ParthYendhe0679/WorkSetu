@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import api from "@/services/api";
 import { toast } from "sonner";
 import { Loader2, Plus, X } from "lucide-react";
+import { CONSTRUCTION_SKILLS } from "@/constants/skills";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -148,12 +149,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
           <div className="space-y-2">
             <Label>Skills</Label>
             <div className="flex gap-2">
-              <Input
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
-                placeholder="Add a skill (e.g. Tiling)"
-                onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())}
-              />
+              >
+                <option value="" disabled>Select a skill...</option>
+                {CONSTRUCTION_SKILLS.map(skill => (
+                  <option key={skill} value={skill}>{skill}</option>
+                ))}
+              </select>
               <Button type="button" variant="outline" size="icon" onClick={addSkill}>
                 <Plus className="h-4 w-4" />
               </Button>

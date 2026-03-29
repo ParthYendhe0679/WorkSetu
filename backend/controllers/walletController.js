@@ -78,6 +78,54 @@ exports.addFunds = async (req, res, next) => {
     }
 };
 
+// @desc    Withdraw funds from wallet (Simulated)
+// @route   POST /api/wallet/withdraw
+// @access  Private
+exports.withdrawFunds = async (req, res, next) => {
+    try {
+        const { amount } = req.body;
+        
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid amount' });
+        }
+
+        const user = await User.findById(req.user.id);
+        
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        if (!user.wallet || user.wallet.balance < Number(amount)) {
+            return res.status(400).json({ success: false, message: 'Insufficient funds' });
+        }
+
+        user.wallet.balance -= Number(amount);
+        
+        // Mark modified since it's a nested object
+        user.markModified('wallet');
+        await user.save();
+
+        // Create transaction
+        await Transaction.create({
+            userId: req.user.id,
+            amount: -Number(amount),
+            type: 'debit',
+            status: 'completed',
+            description: 'Funds Withdrawn to Bank Account'
+        });
+
+        res.status(200).json({
+            success: true,
+            data: user.wallet
+        });
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 // @desc    Get transaction history
 // @route   GET /api/wallet/transactions
 // @access  Private
@@ -101,5 +149,6 @@ exports.getTransactions = async (req, res, next) => {
 module.exports = {
     getWallet: exports.getWallet,
     addFunds: exports.addFunds,
+    withdrawFunds: exports.withdrawFunds,
     getTransactions: exports.getTransactions
 };

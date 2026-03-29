@@ -14,7 +14,7 @@ export interface ProjectPayload {
   isPublicPost?: boolean;
 }
 
-// ─── Constructor ──────────────────────────────────────────────────────────────
+// ─── Contractor ──────────────────────────────────────────────────────────────
 export const createProject = (data: ProjectPayload) =>
   api.post('/projects/create', data).then(r => r.data);
 
@@ -42,6 +42,9 @@ export const requestWorker = (projectId: string, workerId: string) =>
 export const completeProject = (data: { projectId: string; rating?: number; comment?: string }) =>
   api.post('/projects/complete', data).then(r => r.data);
 
+export const completeProjectDay = (projectId: string, presentWorkerIds: string[]) =>
+  api.post(`/projects/${projectId}/complete-day`, { presentWorkerIds }).then(r => r.data);
+
 // ─── Worker ───────────────────────────────────────────────────────────────────
 export const getAllProjects = () =>
   api.get('/projects/all').then(r => r.data);
@@ -60,3 +63,6 @@ export const markDayComplete = (projectId: string) =>
 
 export const getProjectWorkHistory = () =>
   api.get('/projects/work-history').then(r => r.data);
+
+export const updateProjectApplicationStatus = (id: string, status: 'accepted' | 'rejected') =>
+  api.put(`/projects/application/${id}`, { status }).then(r => r.data);
