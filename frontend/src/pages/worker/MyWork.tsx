@@ -25,17 +25,21 @@ const MyWork = () => {
     const fetchData = async () => {
         try {
             const [jobsRes, walletRes, projectsRes, historyRes] = await Promise.all([
-                getMyAssignedJobs(),
-                getWallet(),
+                getMyAssignedJobs().catch(() => ({ data: [] })),
+                getWallet().catch(() => ({ data: { balance: 0, pending: 0 } })),
                 getAssignedProjects().catch(() => ({ data: [] })),
                 getProjectWorkHistory().catch(() => ({ data: [] }))
             ]);
-            setJobs(jobsRes.data);
-            setWallet(walletRes.data);
-            setAssignedProjects(projectsRes.data);
-            setProjectHistory(historyRes.data || []);
+            setJobs(jobsRes?.data || []);
+            setWallet(walletRes?.data || { balance: 0, pending: 0 });
+            setAssignedProjects(projectsRes?.data || []);
+            setProjectHistory(historyRes?.data || []);
         } catch (error) {
             console.error("Error fetching work data:", error);
+            setJobs([]);
+            setWallet({ balance: 0, pending: 0 });
+            setAssignedProjects([]);
+            setProjectHistory([]);
         } finally {
             setLoading(false);
         }
@@ -43,10 +47,10 @@ const MyWork = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const activeJobs = jobs.filter(j => j.status === "in-progress" || j.status === "booked");
-    const workHistory = jobs.filter(j => j.status === "completed");
-    const activeProjects = assignedProjects.filter(p => p.status !== "completed");
-    const completedProjects = assignedProjects.filter(p => p.status === "completed");
+    const activeJobs = (jobs || []).filter(j => j?.status === "in-progress" || j?.status === "booked");
+    const workHistory = (jobs || []).filter(j => j?.status === "completed");
+    const activeProjects = (assignedProjects || []).filter(p => p?.status !== "completed");
+    const completedProjects = (assignedProjects || []).filter(p => p?.status === "completed");
 
     if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
@@ -65,11 +69,11 @@ const MyWork = () => {
                     </div>
                     <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-primary/70">Withdrawable Balance</p>
-                        <p className="text-2xl font-black text-primary">₹{wallet.balance.toLocaleString()}</p>
+                        <p className="text-2xl font-black text-primary">₹{(wallet?.balance || 0).toLocaleString()}</p>
                     </div>
                     <div className="ml-4 pl-4 border-l border-primary/10 flex flex-col items-center">
                         <TrendingUp size={16} className="text-success mb-1" />
-                        <span className="text-[10px] font-bold text-success">+₹{wallet.pending.toLocaleString()} pending</span>
+                        <span className="text-[10px] font-bold text-success">+₹{(wallet?.pending || 0).toLocaleString()} pending</span>
                     </div>
                 </div>
             </motion.div>
@@ -104,10 +108,10 @@ const MyWork = () => {
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
                                             <h4 className="font-bold text-lg">{p.title}</h4>
-                                            <p className="text-xs text-muted-foreground font-medium mt-0.5">{p.requiredSkills?.join(", ")}</p>
+                                            <p className="text-xs text-muted-foreground font-medium mt-0.5">{Array.isArray(p.requiredSkills) ? p.requiredSkills.join(", ") : p.requiredSkills}</p>
                                         </div>
                                         <Badge className="bg-primary/10 text-primary border-primary/20 border uppercase text-[9px] font-black">
-                                            {p.status.replace("-", " ")}
+                                            {(p.status || "open").replace("-", " ")}
                                         </Badge>
                                     </div>
                                     <div className="flex gap-4 text-sm font-medium border-t border-border pt-3">
@@ -116,11 +120,11 @@ const MyWork = () => {
                                     </div>
                                     {/* Summary from history */}
                                     {(() => {
-                                        const summary = projectHistory.find((h: any) => h.project?._id === p._id || h.project === p._id);
+                                        const summary = (projectHistory || []).find((h: any) => h.project?._id === p._id || h.project === p._id);
                                         return summary ? (
                                             <div className="flex gap-4 mt-3 pt-3 border-t border-border text-sm">
                                                 <span className="text-muted-foreground">{summary.daysWorked} day{summary.daysWorked !== 1 ? "s" : ""} worked</span>
-                                                <span className="font-bold text-success">₹{summary.totalEarned.toLocaleString()} earned</span>
+                                                <span className="font-bold text-success">₹{(summary.totalEarned || 0).toLocaleString()} earned</span>
                                             </div>
                                         ) : null;
                                     })()}
