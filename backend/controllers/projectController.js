@@ -33,12 +33,12 @@ exports.updateProject = async (req, res) => {
              const hasCoords = Array.isArray(req.body.location.coordinates) && req.body.location.coordinates.length === 2;
              
              if (!hasCoords) {
-                 const coords = await getCoordinatesFromAddress(manualAddress);
-                 if (coords) {
+                 const result = await getCoordinatesFromAddress(manualAddress);
+                 if (result) {
                      project.location = {
                          type: 'Point',
-                         coordinates: coords,
-                         address: manualAddress
+                         coordinates: result.coordinates,
+                         address: result.resolvedAddress || manualAddress
                      };
                  }
              }
@@ -92,10 +92,11 @@ exports.createProject = async (req, res) => {
         
         // --- NEW: Automatic Geocoding for manual addresses ---
         if (locationData.address && (!locationData.coordinates || locationData.coordinates.length !== 2)) {
-            const coords = await getCoordinatesFromAddress(locationData.address);
-            if (coords) {
+            const result = await getCoordinatesFromAddress(locationData.address);
+            if (result) {
                 locationData.type = 'Point';
-                locationData.coordinates = coords;
+                locationData.coordinates = result.coordinates;
+                if (result.resolvedAddress) locationData.address = result.resolvedAddress;
             }
         }
 
