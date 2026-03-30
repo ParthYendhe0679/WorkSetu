@@ -14,6 +14,7 @@ const allowedOrigins = [
     'http://localhost:8080',
     'http://localhost:3000',
     'http://localhost:5173',
+    'https://worksetu-eta.vercel.app',  // Your current Vercel frontend
     process.env.FRONTEND_URL,           // e.g. https://worksetu-frontend.onrender.com
 ].filter(Boolean);
 
@@ -21,7 +22,13 @@ app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (e.g. mobile apps, Postman, server-to-server)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        
+        // Check if origin is in the allowed list or is a subdomain of our trusted platforms
+        const isAllowed = allowedOrigins.includes(origin) || 
+                         origin.endsWith('.vercel.app') || 
+                         origin.endsWith('.onrender.com');
+
+        if (isAllowed) {
             return callback(null, true);
         }
         return callback(new Error('Not allowed by CORS'));
