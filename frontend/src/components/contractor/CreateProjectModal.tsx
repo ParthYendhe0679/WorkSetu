@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ChevronRight, ChevronLeft, Plus, Loader2, Check,
-  Globe, Search, Send, Users, Building2
+  Globe, Search, Send, Users, Building2, MapPin, Navigation, AlertCircle, CheckCircle2, Edit3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,17 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
   const [workerSearch, setWorkerSearch] = useState("");
   const [requestedWorkers, setRequestedWorkers] = useState<string[]>([]);
   const [sendingTo, setSendingTo] = useState<string | null>(null);
+  
+  // ── Dual-Location State (Contractor GPS) ─────────────────────────────────
+  const [gpsLocation, setGpsLocation] = useState<{
+    address: string;
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [manualLocation, setManualLocation] = useState("");
+  // ─────────────────────────────────────────────────────────────────────────
 
   const resetAll = () => {
     setStep(1);
@@ -60,7 +71,68 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
     setCreatedProject(null);
     setRequestedWorkers([]);
     setWorkerSearch("");
+    setGpsLocation(null);
+    setGpsError(null);
+    setManualLocation("");
   };
+
+  /** Fetch current device GPS → reverse-geocode to street address */
+  const handleFetchGPS = () => {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setGpsLoading(true);
+    setGpsError(null);
+    setGpsLocation(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+        let address = "";
+
+        // Try Google Maps first
+        if (API_KEY) {
+          try {
+            const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}`);
+            const data = await res.json();
+            if (data.status === "OK" && data.results.length > 0) address = data.results[0].formatted_address;
+          } catch (err) { console.warn("Google Maps geocoding failed", err); }
+        }
+
+        // Fallback to OSM
+        if (!address) {
+          try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+            const data = await res.json();
+            if (data && data.display_name) address = data.display_name;
+          } catch (err) { console.warn("OSM Geocoding failed", err); }
+        }
+
+        if (address) {
+          setGpsLocation({ address, lat, lng });
+          toast.success("Project site location fetched!", { description: address });
+        } else {
+          setGpsLocation({ address: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, lat, lng });
+        }
+        setGpsLoading(false);
+      },
+      (err) => {
+        setGpsLoading(false);
+        setGpsError("Could not capture GPS. Please type the location manually.");
+        toast.warning("GPS Capture Failed — you can still type it manually below.");
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
+  const clearGPS = () => { setGpsLocation(null); setGpsError(null); };
+  const usingGPS = !!gpsLocation && !gpsError;
+  const locationResolved = gpsLocation || manualLocation.trim().length > 0;
 
   useEffect(() => {
     if (!open) resetAll();
@@ -80,9 +152,24 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
       toast.error("Please fill in all required fields");
       return;
     }
+    // Resolve location — GPS wins if available
+    let locationPayload: any;
+    if (gpsLocation && !gpsError) {
+      locationPayload = {
+        type: "Point",
+        coordinates: [gpsLocation.lng, gpsLocation.lat],
+        address: gpsLocation.address,
+      };
+    } else if (manualLocation.trim()) {
+      locationPayload = { address: manualLocation.trim() };
+    } else {
+      toast.error("Please provide a project location — use GPS or type it manually.");
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await createProject({ ...form });
+      const res = await createProject({ ...form, location: locationPayload });
       toast.success("Project created! Now add workers.");
       setCreatedProject(res.data);
       setStep(2);
@@ -233,11 +320,92 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Location</label>
-                  <Input placeholder="City / Site" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} className="rounded-xl h-12" />
+              {/* ── DUAL LOCATION SECTION ─────────────────────────────────────── */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Project Site Location *
+                  </label>
+                  {usingGPS && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-success flex items-center gap-1">
+                      <CheckCircle2 size={10} /> GPS Active
+                    </span>
+                  )}
                 </div>
+
+                <div className="rounded-xl border border-border bg-secondary/20 overflow-hidden divide-y divide-border">
+                  {/* Row 1: GPS */}
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Navigation size={12} className={usingGPS ? "text-success" : "text-muted-foreground"} />
+                      <span className="text-[10px] font-bold text-foreground">Live GPS Capture</span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <Input
+                          readOnly
+                          value={gpsLocation?.address || ""}
+                          placeholder="Fetch site location..."
+                          className={`bg-background/50 border-border h-10 pr-8 text-xs cursor-default ${
+                            usingGPS ? "border-success/50 text-foreground" : "text-muted-foreground"
+                          }`}
+                        />
+                        {gpsLocation && (
+                          <button
+                            type="button"
+                            onClick={clearGPS}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X size={12} />
+                          </button>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={handleFetchGPS}
+                        disabled={gpsLoading}
+                        variant="outline"
+                        className={`shrink-0 h-10 font-bold text-[10px] px-3 gap-2 border-primary/30 hover:border-primary transition-all ${
+                          usingGPS ? "border-success/50 text-success bg-success/5" : ""
+                        }`}
+                      >
+                        {gpsLoading ? <Loader2 size={12} className="animate-spin" /> : <MapPin size={12} />}
+                        {gpsLoading ? "..." : usingGPS ? "Locked" : "Google API Fetch"}
+                      </Button>
+                    </div>
+
+                    {gpsError && !gpsLoading && (
+                      <p className="text-[10px] text-destructive font-medium ml-1">📍 {gpsError}</p>
+                    )}
+                  </div>
+
+                  {/* Manual Fallback */}
+                  <div className="p-4 bg-background/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Edit3 size={11} className={!usingGPS && manualLocation ? "text-warning" : "text-muted-foreground"} />
+                      <span className="text-[10px] font-bold text-foreground">Manual Entry Fallback</span>
+                    </div>
+                    <Input
+                      value={manualLocation}
+                      onChange={e => setManualLocation(e.target.value)}
+                      placeholder="Type address if GPS is unavailable..."
+                      className={`bg-background/30 border-border h-10 text-xs ${
+                        !usingGPS && manualLocation ? "border-warning/40" : ""
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {!locationResolved && (
+                  <p className="text-[10px] text-muted-foreground ml-1">
+                    Please provide at least one site location — GPS recommended.
+                  </p>
+                )}
+              </div>
+              {/* ── END DUAL LOCATION ─────────────────────────────────────────── */}
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Duration *</label>
                   <Input placeholder="e.g. 3 Months" value={form.duration} onChange={e => setForm(f => ({ ...f, duration: e.target.value }))} className="rounded-xl h-12" />
@@ -273,11 +441,11 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
 
               <Button
                 onClick={handleStep1Submit}
-                disabled={saving}
+                disabled={saving || !locationResolved}
                 className="w-full h-13 gradient-primary font-bold rounded-2xl text-sm gap-2 shadow-lg mt-2"
               >
-                {saving ? <Loader2 size={18} className="animate-spin" /> : <ChevronRight size={18} />}
-                {saving ? "Creating..." : "Create Project & Add Workers"}
+                {saving ? <Loader2 size={18} className="animate-spin" /> : (locationResolved ? <ChevronRight size={18} /> : <AlertCircle size={18} />)}
+                {saving ? "Creating..." : locationResolved ? "Create Project & Add Workers" : "Please Provide Location First"}
               </Button>
             </div>
           )}

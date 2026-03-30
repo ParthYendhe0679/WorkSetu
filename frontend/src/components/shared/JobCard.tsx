@@ -12,13 +12,14 @@ interface JobCardProps {
   tags: string[];
   postedAgo: string;
   postedBy?: string;
+  postedByRole?: string;
   urgent?: boolean;
   status?: string;
   paymentStatus?: string;
   onClick?: () => void;
 }
 
-const JobCard = ({ title, location, budget, duration, tags, postedAgo, postedBy, urgent, status, paymentStatus, onClick }: JobCardProps) => {
+const JobCard = ({ title, location, budget, duration, tags, postedAgo, postedBy, postedByRole, urgent, status, paymentStatus, onClick }: JobCardProps) => {
   const { t } = useLanguage();
 
   const handleApply = () => {
@@ -66,7 +67,9 @@ const JobCard = ({ title, location, budget, duration, tags, postedAgo, postedBy,
         )}
       </div>
       {postedBy && (
-        <p className="text-xs font-bold text-muted-foreground mb-2 flex items-center gap-1.5 opacity-80 uppercase tracking-widest"><User size={12} className="text-primary" /> {postedBy}</p>
+        <p className="text-xs font-bold text-muted-foreground mb-2 flex items-center gap-1.5 opacity-80 uppercase tracking-widest font-[var(--font-heading)]">
+          <User size={12} className={postedByRole === 'contractor' ? 'text-black' : (postedByRole === 'client' || postedByRole === 'normal') ? 'text-red-500' : 'text-primary'} /> {postedBy}
+        </p>
       )}
       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
         <span className="flex items-center gap-1.5"><MapPin size={14} className="text-primary/70" /> {location}</span>

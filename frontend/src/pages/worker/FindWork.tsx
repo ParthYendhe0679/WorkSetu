@@ -229,6 +229,7 @@ const FindWork = () => {
                       tags={[j.skillRequired]}
                       postedAgo={new Date(j.createdAt).toLocaleDateString()}
                       postedBy={j.postedBy?.name}
+                      postedByRole={j.postedBy?.role}
                       urgent={j.isUrgent}
                       status={j.status}
                       paymentStatus={j.paymentStatus}
@@ -282,7 +283,7 @@ const FindWork = () => {
                       className="glass-card p-6 flex flex-col gap-4 hover:border-primary/40 transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center text-accent shrink-0">
+                        <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center text-black shrink-0 border border-black/10">
                           <Building2 size={22} />
                         </div>
                         <div className="min-w-0">
@@ -363,7 +364,7 @@ const FindWork = () => {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground flex items-center gap-1.5 font-medium">
-                        <User size={14} className="text-primary/70" /> {req.sender?.name || req.clientId?.name || "Client"}
+                        <User size={14} className={(req.sender?.role === 'contractor' || req.type === 'project') ? "text-black" : "text-red-500"} /> {req.sender?.name || req.clientId?.name || "Client"}
                       </p>
                     </div>
                     <div className="text-right">

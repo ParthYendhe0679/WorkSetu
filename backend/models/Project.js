@@ -14,8 +14,18 @@ const projectSchema = new mongoose.Schema({
         required: [true, 'Please add required skills']
     },
     location: {
-        type: String,
-        default: ''
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number] // [longitude, latitude]
+        },
+        address: {
+            type: String,
+            required: [true, 'Please add a location address']
+        }
     },
     duration: {
         type: String,
@@ -75,5 +85,8 @@ const projectSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+// Sparse 2dsphere index — only indexes projects that have real coordinates.
+projectSchema.index({ "location.coordinates": '2dsphere' }, { sparse: true });
 
 module.exports = mongoose.model('Project', projectSchema);

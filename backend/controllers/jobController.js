@@ -89,11 +89,11 @@ exports.getNearbyJobs = async (req, res, next) => {
                     $maxDistance: distanceInMeters
                 }
             }
-        }).populate('postedBy', 'name location profileImage');
+        }).populate('postedBy', 'name location profileImage role');
         
         // 2. Fetch Projects (Long term)
         let projects = await Project.find({ isPublicPost: true, status: 'open' })
-            .populate('createdBy', 'name profileImage');
+            .populate('createdBy', 'name profileImage role');
 
         const transformedProjects = projects.map(p => ({
             _id: p._id,
@@ -129,7 +129,7 @@ exports.getNearbyJobs = async (req, res, next) => {
 // @access  Public
 exports.getJobs = async (req, res, next) => {
     try {
-        const jobs = await Job.find().populate('postedBy', 'name location');
+        const jobs = await Job.find().populate('postedBy', 'name location role');
 
         res.status(200).json({
             success: true,
@@ -353,7 +353,7 @@ exports.getJobById = async (req, res) => {
     try {
         const job = await Job.findById(req.params.id)
             .populate('assignedWorker', 'name phone skills profileImage averageRating')
-            .populate('postedBy', 'name')
+            .populate('postedBy', 'name role')
             .populate('applicants', 'name profileImage skills status averageRating completedJobs');
         
         if (!job) {
@@ -469,7 +469,7 @@ exports.updateJobRequestStatus = async (req, res, next) => {
 exports.getMyAssignedJobs = async (req, res, next) => {
     try {
         const jobs = await Job.find({ assignedWorker: req.user.id })
-            .populate('postedBy', 'name email phone');
+            .populate('postedBy', 'name email phone role');
         
         res.status(200).json({
             success: true,

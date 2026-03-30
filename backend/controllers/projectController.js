@@ -38,10 +38,41 @@ exports.updateProject = async (req, res) => {
 exports.createProject = async (req, res) => {
     try {
         req.body.createdBy = req.user.id;
-        // Default to public post so workers can immediately see and apply!
+        
+        // Default to public post if not specified
         if (req.body.isPublicPost === undefined) {
-             req.body.isPublicPost = true;
+            req.body.isPublicPost = true;
         }
+
+        // Map location gracefully — support new GeoJSON and legacy string formats:
+        let locationData = { address: '' };
+        const loc = req.body.location;
+
+        if (loc && typeof loc === 'object') {
+            if (Array.isArray(loc.coordinates) && loc.coordinates.length === 2) {
+                // GeoJSON path
+                locationData = {
+                    type: 'Point',
+                    coordinates: loc.coordinates, // [lng, lat]
+                    address: loc.address || 'Unknown Address'
+                };
+            } else if (loc.lat !== undefined && loc.lng !== undefined) {
+                // Legacy coord object
+                locationData = {
+                    type: 'Point',
+                    coordinates: [loc.lng, loc.lat],
+                    address: loc.address || 'Unknown Address'
+                };
+            } else if (loc.address) {
+                // Manual address via object
+                locationData = { address: loc.address };
+            }
+        } else if (typeof loc === 'string') {
+            // Simple string manual fallback
+            locationData = { address: loc };
+        }
+
+        req.body.location = locationData;
         const project = await Project.create(req.body);
         res.status(201).json({ success: true, data: project });
     } catch (error) {
@@ -59,7 +90,7 @@ exports.getProjects = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const projects = await Project.find({ isPublicPost: true, status: { $ne: 'completed' } })
-            .populate('createdBy', 'name location profileImage')
+            .populate('createdBy', 'name location profileImage role')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -89,7 +120,7 @@ exports.getAllProjects = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const projects = await Project.find({ isPublicPost: true })
-            .populate('createdBy', 'name location profileImage')
+            .populate('createdBy', 'name location profileImage role')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -149,7 +180,7 @@ exports.getAssignedProjects = async (req, res) => {
         const skip = (page - 1) * limit;
 
         const projects = await Project.find({ assignedWorkers: req.user.id })
-            .populate('createdBy', 'name profileImage')
+            .populate('createdBy', 'name profileImage role')
             .populate('assignedWorkers', 'name profileImage skills')
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -176,7 +207,7 @@ exports.getAssignedProjects = async (req, res) => {
 exports.getProjectById = async (req, res) => {
     try {
         const project = await Project.findById(req.params.id)
-            .populate('createdBy', 'name profileImage location')
+            .populate('createdBy', 'name profileImage location role')
             .populate('assignedWorkers', 'name profileImage skills averageRating completedJobs');
         if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
         res.status(200).json({ success: true, data: project });
