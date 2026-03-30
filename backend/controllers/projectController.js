@@ -5,6 +5,7 @@ const WorkHistory = require('../models/WorkHistory');
 const ProjectApplication = require('../models/ProjectApplication');
 const DailyWorkLog = require('../models/DailyWorkLog');
 const Transaction = require('../models/Transaction');
+const { getCoordinatesFromAddress } = require('../utils/geocoder');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONTRACTOR ENDPOINTS
@@ -25,6 +26,24 @@ exports.updateProject = async (req, res) => {
         allowedFields.forEach(field => {
             if (req.body[field] !== undefined) project[field] = req.body[field];
         });
+
+        // Trigger Geocoding if address changed or coordinates are missing
+        if (req.body.location && req.body.location.address) {
+             const manualAddress = req.body.location.address;
+             const hasCoords = Array.isArray(req.body.location.coordinates) && req.body.location.coordinates.length === 2;
+             
+             if (!hasCoords) {
+                 const coords = await getCoordinatesFromAddress(manualAddress);
+                 if (coords) {
+                     project.location = {
+                         type: 'Point',
+                         coordinates: coords,
+                         address: manualAddress
+                     };
+                 }
+             }
+        }
+
         await project.save();
         res.status(200).json({ success: true, data: project });
     } catch (error) {
@@ -69,7 +88,15 @@ exports.createProject = async (req, res) => {
             }
         } else if (typeof loc === 'string') {
             // Simple string manual fallback
-            locationData = { address: loc };
+        }
+        
+        // --- NEW: Automatic Geocoding for manual addresses ---
+        if (locationData.address && (!locationData.coordinates || locationData.coordinates.length !== 2)) {
+            const coords = await getCoordinatesFromAddress(locationData.address);
+            if (coords) {
+                locationData.type = 'Point';
+                locationData.coordinates = coords;
+            }
         }
 
         req.body.location = locationData;

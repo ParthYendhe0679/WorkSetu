@@ -5,6 +5,7 @@ const WorkHistory = require('../models/WorkHistory');
 const JobRequest = require('../models/JobRequest');
 const ProjectApplication = require('../models/ProjectApplication');
 const Notification = require('../models/Notification');
+const { getCoordinatesFromAddress } = require('../utils/geocoder');
 
 // @desc    Create new job
 // @route   POST /api/jobs/create
@@ -39,11 +40,19 @@ exports.createJob = async (req, res, next) => {
                 // Case 3a: object with only address (manual via object)
                 locationData = { address: loc.address };
             }
-        } else if (typeof loc === 'string') {
             // Case 3b: plain string manual fallback — no coordinates stored.
             // These jobs will NOT appear in geo/nearby queries but ARE discoverable
             // in the general Jobs list tab on the worker dashboard.
             locationData = { address: loc };
+        }
+
+        // --- NEW: Automatic Geocoding for manual addresses ---
+        if (locationData.address && (!locationData.coordinates || locationData.coordinates.length !== 2)) {
+            const coords = await getCoordinatesFromAddress(locationData.address);
+            if (coords) {
+                locationData.type = 'Point';
+                locationData.coordinates = coords;
+            }
         }
         
         // Apply transformed location
