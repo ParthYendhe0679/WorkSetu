@@ -48,10 +48,12 @@ exports.createJob = async (req, res, next) => {
 
         // --- NEW: Automatic Geocoding for manual addresses ---
         if (locationData.address && (!locationData.coordinates || locationData.coordinates.length !== 2)) {
-            const coords = await getCoordinatesFromAddress(locationData.address);
-            if (coords) {
+            const result = await getCoordinatesFromAddress(locationData.address);
+            if (result) {
                 locationData.type = 'Point';
-                locationData.coordinates = coords;
+                locationData.coordinates = result.coordinates;
+                // Use the resolved full address (e.g. if user entered a PIN code)
+                if (result.resolvedAddress) locationData.address = result.resolvedAddress;
             }
         }
         

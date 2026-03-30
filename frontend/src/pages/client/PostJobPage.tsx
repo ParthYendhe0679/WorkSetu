@@ -126,19 +126,23 @@ const PostJobPage = () => {
 
   const handleTestAddress = async () => {
     if (!manualLocation.trim()) {
-      toast.error("Please enter an address to test.");
+      toast.error("Please enter an address or PIN code to verify.");
       return;
     }
     setValidatingAddress(true);
     try {
       const res = await validateAddress(manualLocation.trim());
       setIsManualValidated(true);
-      toast.success("Address verified successfully!", {
-          description: `Map coordinates locked: ${res.coordinates.join(", ")}`
+      // If the API resolved a full address (e.g. from a PIN code), auto-fill it
+      if (res.resolvedAddress && res.resolvedAddress !== manualLocation.trim()) {
+        setManualLocation(res.resolvedAddress);
+      }
+      toast.success("Address found & verified! 📍", {
+        description: res.resolvedAddress || `Coordinates: ${res.coordinates.join(", ")}`
       });
     } catch (err: any) {
       setIsManualValidated(false);
-      toast.error(err?.response?.data?.message || "Address not found. Please be more specific (e.g. City, State).");
+      toast.error(err?.response?.data?.message || "Address not found. Try a full address, city name, or valid PIN code.");
     } finally {
       setValidatingAddress(false);
     }

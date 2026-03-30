@@ -826,19 +826,20 @@ exports.validateAddress = async (req, res, next) => {
             return res.status(400).json({ success: false, message: 'Please provide an address to validate' });
         }
 
-        const coordinates = await getCoordinatesFromAddress(address);
+        const result = await getCoordinatesFromAddress(address);
 
-        if (!coordinates) {
+        if (!result) {
             return res.status(404).json({
                 success: false,
-                message: 'Could not find this address. Please be more specific (mention City, State or Landmark).'
+                message: 'Could not find this address. Try entering the full address, city name, or a valid PIN code.'
             });
         }
 
         res.status(200).json({
             success: true,
             message: 'Address validated successfully!',
-            coordinates: coordinates // [lng, lat]
+            coordinates: result.coordinates,       // [lng, lat]
+            resolvedAddress: result.resolvedAddress // full human-readable address
         });
     } catch (error) {
         res.status(500).json({
