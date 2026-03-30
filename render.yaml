@@ -15,8 +15,6 @@ services:
         sync: false          # set manually in Render dashboard
       - key: JWT_SECRET
         sync: false          # set manually in Render dashboard
-      - key: GOOGLE_CLIENT_ID
-        sync: false          # set manually in Render dashboard
       - key: GOOGLE_MAPS_API_KEY
         sync: false          # set manually in Render dashboard
       - key: CLOUDINARY_CLOUD_NAME
@@ -40,7 +38,5 @@ services:
     envVars:
       - key: VITE_API_URL
         sync: false          # set to your backend Render URL, e.g. https://worksetu-backend.onrender.com/api
-      - key: VITE_GOOGLE_CLIENT_ID
-        sync: false
       - key: VITE_GOOGLE_MAPS_API_KEY
         sync: false
