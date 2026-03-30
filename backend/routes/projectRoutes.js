@@ -19,7 +19,6 @@ const {
     updateProgress,
     completeProject,
     completeProjectDay,
-    completeProjectDay,
     updateProjectApplicationStatus,
     validateAddress
 } = require('../controllers/projectController');
