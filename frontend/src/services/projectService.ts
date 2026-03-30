@@ -66,3 +66,6 @@ export const getProjectWorkHistory = () =>
 
 export const updateProjectApplicationStatus = (id: string, status: 'accepted' | 'rejected') =>
   api.put(`/projects/application/${id}`, { status }).then(r => r.data);
+
+export const validateAddress = (address: string) =>
+  api.post('/projects/validate-address', { address }).then(r => r.data);

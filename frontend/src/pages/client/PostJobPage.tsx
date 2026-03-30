@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { createJob } from "@/services/jobService";
-import { Loader2, UserCheck, X, MapPin, Navigation, CheckCircle2, AlertCircle, Edit3 } from "lucide-react";
+import { validateAddress } from "@/services/projectService";
+import { Loader2, UserCheck, X, MapPin, Navigation, CheckCircle2, AlertCircle, Edit3, Check } from "lucide-react";
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
@@ -44,6 +45,8 @@ const PostJobPage = () => {
 
   // Manual location (typed by user)
   const [manualLocation, setManualLocation] = useState("");
+  const [validatingAddress, setValidatingAddress] = useState(false);
+  const [isManualValidated, setIsManualValidated] = useState(false);
   // ─────────────────────────────────────────────────────────────────────────
 
   /** Fetch current device GPS → reverse-geocode to street address */
@@ -121,6 +124,26 @@ const PostJobPage = () => {
     );
   };
 
+  const handleTestAddress = async () => {
+    if (!manualLocation.trim()) {
+      toast.error("Please enter an address to test.");
+      return;
+    }
+    setValidatingAddress(true);
+    try {
+      const res = await validateAddress(manualLocation.trim());
+      setIsManualValidated(true);
+      toast.success("Address verified successfully!", {
+          description: `Map coordinates locked: ${res.coordinates.join(", ")}`
+      });
+    } catch (err: any) {
+      setIsManualValidated(false);
+      toast.error(err?.response?.data?.message || "Address not found. Please be more specific (e.g. City, State).");
+    } finally {
+      setValidatingAddress(false);
+    }
+  };
+
   /** Clear fetched GPS so user can retry or rely on manual */
   const clearGPS = () => {
     setGpsLocation(null);
@@ -177,8 +200,8 @@ const PostJobPage = () => {
   };
 
   // Derived: which location mode is "active"
-  const locationResolved = gpsLocation || manualLocation.trim().length > 0;
   const usingGPS = !!gpsLocation && !gpsError;
+  const locationResolved = usingGPS || isManualValidated;
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="max-w-3xl space-y-8 pb-20">
@@ -348,14 +371,31 @@ const PostJobPage = () => {
                   <span className="text-xs font-bold text-foreground">Manual Location</span>
                   <span className="text-[10px] text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">Fallback</span>
                 </div>
-                <Input
-                  value={manualLocation}
-                  onChange={(e) => setManualLocation(e.target.value)}
-                  placeholder="e.g. Mumbai, Maharashtra  /  Thane West  /  Pune"
-                  className={`bg-background/30 border-border focus:border-primary py-5 rounded-xl text-sm ${
-                    !usingGPS && manualLocation ? "border-warning/40" : ""
-                  }`}
-                />
+                <div className="flex gap-2">
+                  <Input
+                    value={manualLocation}
+                    onChange={(e) => {
+                      setManualLocation(e.target.value);
+                      setIsManualValidated(false);
+                    }}
+                    placeholder="e.g. Mumbai, Maharashtra  /  Thane West  /  Pune"
+                    className={`bg-background/30 border-border focus:border-primary py-5 rounded-xl text-sm flex-1 ${
+                      !usingGPS && manualLocation ? (isManualValidated ? "border-success/40" : "border-warning/40") : ""
+                    }`}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleTestAddress}
+                    disabled={validatingAddress || !manualLocation.trim() || usingGPS}
+                    variant="outline"
+                    className={`rounded-xl font-bold text-xs px-4 border-primary/30 transition-all ${
+                      isManualValidated ? "bg-success/10 text-success border-success/30" : "hover:bg-primary/5 hover:border-primary"
+                    }`}
+                  >
+                    {validatingAddress ? <Loader2 size={14} className="animate-spin" /> : isManualValidated ? <Check size={14} /> : <MapPin size={14} />}
+                    <span className="ml-2">{isManualValidated ? "Verified" : "Verify Address"}</span>
+                  </Button>
+                </div>
                 {!usingGPS && manualLocation.trim() && (
                   <p className="text-[11px] text-warning/80 font-medium ml-1">
                     📍 Workers will find this job in the Jobs list tab (not on map).
@@ -367,7 +407,7 @@ const PostJobPage = () => {
             {/* Location resolution status */}
             {!locationResolved && (
               <p className="text-[11px] text-muted-foreground ml-1">
-                Provide at least one location — GPS or manual text.
+                Provide a location — {manualLocation.trim() ? "click 'Verify Address' to validate manually." : "GPS or manual text."}
               </p>
             )}
           </div>

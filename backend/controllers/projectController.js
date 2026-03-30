@@ -814,3 +814,36 @@ exports.updateProjectApplicationStatus = async (req, res) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Validate an address and return coordinates
+// @route   POST /api/projects/validate-address
+// @access  Private
+exports.validateAddress = async (req, res, next) => {
+    try {
+        const { address } = req.body;
+
+        if (!address) {
+            return res.status(400).json({ success: false, message: 'Please provide an address to validate' });
+        }
+
+        const coordinates = await getCoordinatesFromAddress(address);
+
+        if (!coordinates) {
+            return res.status(404).json({
+                success: false,
+                message: 'Could not find this address. Please be more specific (mention City, State or Landmark).'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Address validated successfully!',
+            coordinates: coordinates // [lng, lat]
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error validating address'
+        });
+    }
+};

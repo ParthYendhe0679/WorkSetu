@@ -19,7 +19,9 @@ const {
     updateProgress,
     completeProject,
     completeProjectDay,
-    updateProjectApplicationStatus
+    completeProjectDay,
+    updateProjectApplicationStatus,
+    validateAddress
 } = require('../controllers/projectController');
 
 const router = express.Router();
@@ -27,6 +29,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 // ─── PUBLIC ───────────────────────────────────────────────────────────────────
 router.get('/', getProjects);                    // Public listings for workers
+router.post('/validate-address', protect, validateAddress);
 
 // ─── WORKER ROUTES ────────────────────────────────────────────────────────────
 router.get('/all', protect, getAllProjects);                         // All public projects
