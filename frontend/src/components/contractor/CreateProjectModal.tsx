@@ -57,7 +57,10 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
   } | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [manualLocation, setManualLocation] = useState("");
+  const [addrPinCode, setAddrPinCode] = useState("");
+  const [addrState, setAddrState] = useState("");
+  const [addrCity, setAddrCity] = useState("");
+  const [addrLocation, setAddrLocation] = useState("");
   const [validatingAddress, setValidatingAddress] = useState(false);
   const [isManualValidated, setIsManualValidated] = useState(false);
   // ─────────────────────────────────────────────────────────────────────────
@@ -75,7 +78,10 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
     setWorkerSearch("");
     setGpsLocation(null);
     setGpsError(null);
-    setManualLocation("");
+    setAddrPinCode("");
+    setAddrState("");
+    setAddrCity("");
+    setAddrLocation("");
     setIsManualValidated(false);
     setValidatingAddress(false);
   };
@@ -134,25 +140,28 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
     );
   };
 
+  // Build combined address string from the 4 structured fields
+  const buildAddressString = () => {
+    return [addrLocation, addrCity, addrState, addrPinCode].filter(Boolean).join(", ").trim();
+  };
+  const hasManualInput = !!(addrPinCode || addrState || addrCity || addrLocation);
+
   const handleTestAddress = async () => {
-    if (!manualLocation.trim()) {
-      toast.error("Please enter an address or PIN code to verify.");
+    const combined = buildAddressString();
+    if (!combined) {
+      toast.error("Please fill at least the City or PIN Code to verify.");
       return;
     }
     setValidatingAddress(true);
     try {
-      const res = await validateAddress(manualLocation.trim());
+      const res = await validateAddress(combined);
       setIsManualValidated(true);
-      // If the API resolved a full address (e.g. from a PIN code), auto-fill it
-      if (res.resolvedAddress && res.resolvedAddress !== manualLocation.trim()) {
-        setManualLocation(res.resolvedAddress);
-      }
       toast.success("Address found & verified! 📍", {
-        description: res.resolvedAddress || `Coordinates: ${res.coordinates.join(", ")}`
+        description: res.resolvedAddress || combined
       });
     } catch (err: any) {
       setIsManualValidated(false);
-      toast.error(err?.response?.data?.message || "Address not found. Try a full address, city name, or valid PIN code.");
+      toast.error(err?.response?.data?.message || "Address not found. Check the PIN code, City, or State.");
     } finally {
       setValidatingAddress(false);
     }
@@ -161,6 +170,7 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
   const clearGPS = () => { setGpsLocation(null); setGpsError(null); };
   const usingGPS = !!gpsLocation && !gpsError;
   const locationResolved = usingGPS || isManualValidated;
+  const manualLocation = buildAddressString();
 
   useEffect(() => {
     if (!open) resetAll();
@@ -408,43 +418,86 @@ const CreateProjectModal = ({ open, onClose, onCreated }: Props) => {
                     )}
                   </div>
 
-                  {/* Manual Fallback */}
-                  <div className="p-4 bg-background/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Edit3 size={11} className={!usingGPS && manualLocation ? "text-warning" : "text-muted-foreground"} />
+                  {/* Manual Fallback — 4-field structured entry */}
+                  <div className="p-4 bg-background/30 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Edit3 size={11} className={!usingGPS && hasManualInput ? (isManualValidated ? "text-success" : "text-warning") : "text-muted-foreground"} />
                       <span className="text-[10px] font-bold text-foreground">Manual Entry Fallback</span>
+                      {!usingGPS && hasManualInput && !isManualValidated && (
+                        <span className="text-[9px] text-warning/80 font-medium">— Click Verify after filling fields</span>
+                      )}
                     </div>
-                    <div className="flex gap-2">
+
+                    {/* Row 1: PIN + State */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">PIN Code</label>
                         <Input
-                        value={manualLocation}
-                        onChange={e => {
-                            setManualLocation(e.target.value);
-                            setIsManualValidated(false);
-                        }}
-                        placeholder="Type address if GPS is unavailable..."
-                        className={`bg-background/30 border-border h-10 text-xs flex-1 ${
-                            !usingGPS && manualLocation ? (isManualValidated ? "border-success/40" : "border-warning/40") : ""
-                        }`}
+                          value={addrPinCode}
+                          maxLength={6}
+                          onChange={e => { setAddrPinCode(e.target.value.replace(/\D/g,"")); setIsManualValidated(false); }}
+                          placeholder="e.g. 400601"
+                          className="bg-background/30 border-border h-9 text-xs"
+                          disabled={usingGPS}
                         />
-                        <Button
-                        type="button"
-                        onClick={handleTestAddress}
-                        disabled={validatingAddress || !manualLocation.trim() || usingGPS}
-                        variant="ghost"
-                        className={`h-10 text-[10px] font-black uppercase tracking-tighter px-3 border border-border/50 rounded-xl transition-all ${
-                            isManualValidated ? "bg-success/10 text-success border-success/30" : "hover:bg-secondary"
-                        }`}
-                        >
-                        {validatingAddress ? <Loader2 size={12} className="animate-spin" /> : isManualValidated ? <Check size={12} /> : "Test"}
-                        <span className="ml-1">{isManualValidated ? "Verified" : "Verify"}</span>
-                        </Button>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">State</label>
+                        <Input
+                          value={addrState}
+                          onChange={e => { setAddrState(e.target.value); setIsManualValidated(false); }}
+                          placeholder="e.g. Maharashtra"
+                          className="bg-background/30 border-border h-9 text-xs"
+                          disabled={usingGPS}
+                        />
+                      </div>
                     </div>
+
+                    {/* Row 2: City + Location */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">City</label>
+                        <Input
+                          value={addrCity}
+                          onChange={e => { setAddrCity(e.target.value); setIsManualValidated(false); }}
+                          placeholder="e.g. Thane"
+                          className="bg-background/30 border-border h-9 text-xs"
+                          disabled={usingGPS}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Area / Landmark</label>
+                        <Input
+                          value={addrLocation}
+                          onChange={e => { setAddrLocation(e.target.value); setIsManualValidated(false); }}
+                          placeholder="e.g. Hiranandani Estate"
+                          className="bg-background/30 border-border h-9 text-xs"
+                          disabled={usingGPS}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Verify button */}
+                    <Button
+                      type="button"
+                      onClick={handleTestAddress}
+                      disabled={validatingAddress || !hasManualInput || usingGPS}
+                      variant="ghost"
+                      className={`w-full h-9 text-[10px] font-black uppercase tracking-wider border rounded-xl transition-all ${
+                        isManualValidated
+                          ? "bg-success/10 text-success border-success/30"
+                          : "border-border/50 hover:bg-secondary"
+                      }`}
+                    >
+                      {validatingAddress ? <Loader2 size={12} className="animate-spin mr-2" /> : isManualValidated ? <Check size={12} className="mr-2" /> : <MapPin size={12} className="mr-2" />}
+                      {isManualValidated ? "Verified ✓" : validatingAddress ? "Verifying..." : "Verify Address"}
+                    </Button>
                   </div>
                 </div>
 
                 {!locationResolved && (
                   <p className="text-[10px] text-muted-foreground ml-1">
-                    Please provide a site location — {manualLocation.trim() ? "click 'Verify' to validate address." : "use GPS or type it manually."}
+                    {hasManualInput ? "Click 'Verify Address' to confirm the location." : "Use GPS above or fill the address fields below."}
                   </p>
                 )}
               </div>
